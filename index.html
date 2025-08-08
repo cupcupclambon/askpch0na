@@ -1,14 +1,37 @@
 <!doctype html>
 <html>
   <head>
+    <meta charset="utf-8" />
+    <title>AR.js with Sound (User Interaction Required)</title>
     <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <script src="https://raw.githack.com/donmccurdy/aframe-extras/master/dist/aframe-extras.loaders.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
     <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
+    <style>
+      /* 全画面表示 */
+      body, html { margin: 0; overflow: hidden; height: 100%; }
+      /* スタートボタン */
+      #start-btn {
+        position: fixed;
+        top: 20px; left: 20px;
+        z-index: 9999;
+        padding: 12px 20px;
+        font-size: 16px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        user-select: none;
+      }
+    </style>
   </head>
 
-  <body style="margin: 0; overflow: hidden;">
+  <body>
+    <!-- ユーザー操作が必要なための開始ボタン -->
+    <button id="start-btn">タップして開始</button>
+
     <a-scene
       vr-mode-ui="enabled: false;"
       loading-screen="enabled: false;"
@@ -17,13 +40,10 @@
       id="scene"
       embedded
       gesture-detector
+      style="width: 100%; height: 100%;"
     >
       <a-assets>
-        <a-asset-item
-          id="animated-asset"
-          src="assets/asset.glb"
-        ></a-asset-item>
-        <!-- ここに音声ファイルを追加 -->
+        <a-asset-item id="animated-asset" src="assets/asset.glb"></a-asset-item>
         <audio id="sound" src="tokubechu.mp3" preload="auto"></audio>
       </a-assets>
 
@@ -46,7 +66,6 @@
           gesture-handler
         ></a-entity>
 
-        <!-- 音声再生用のエンティティ -->
         <a-sound
           id="marker-sound"
           src="#sound"
@@ -59,18 +78,24 @@
     </a-scene>
 
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const marker = document.querySelector("#animated-marker");
-        const sound = document.querySelector("#marker-sound");
+      // 開始ボタン押下後に音声を再生可能にする処理
+      const startBtn = document.getElementById("start-btn");
+      const sound = document.querySelector("#marker-sound");
+      const marker = document.querySelector("#animated-marker");
 
-        marker.addEventListener("markerFound", () => {
+      startBtn.addEventListener("click", () => {
+        // A-FrameのsoundコンポーネントはplaySound()呼ぶ前に
+        // 一度play()呼ばないとブラウザの自動再生規制に引っかかることがあるので
+        if (sound && sound.components.sound) {
           sound.components.sound.playSound();
-        });
-
-        marker.addEventListener("markerLost", () => {
-          sound.components.sound.stopSound();
-        });
+          sound.components.sound.stopSound(); // すぐ止める
+        }
+        startBtn.style.display = "none"; // ボタン非表示
       });
-    </script>
-  </body>
-</html>
+
+      // マーカー検出時に音声再生
+      marker.addEventListener("markerFound", () => {
+        if (sound && sound.components.sound) {
+          sound.components.sound.playSound();
+        }
+      });
