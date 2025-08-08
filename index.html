@@ -1,19 +1,14 @@
 <!doctype html>
 <html>
   <head>
-    <meta charset="utf-8" />
-    <title>AR.js with Sound (Tap to Activate)</title>
     <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <script src="https://raw.githack.com/donmccurdy/aframe-extras/master/dist/aframe-extras.loaders.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
     <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
-    <style>
-      body, html { margin: 0; overflow: hidden; height: 100%; }
-    </style>
   </head>
 
-  <body>
+  <body style="margin: 0; overflow: hidden;">
     <a-scene
       vr-mode-ui="enabled: false;"
       loading-screen="enabled: false;"
@@ -22,10 +17,13 @@
       id="scene"
       embedded
       gesture-detector
-      style="width: 100%; height: 100%;"
     >
       <a-assets>
-        <a-asset-item id="animated-asset" src="assets/asset.glb"></a-asset-item>
+        <a-asset-item
+          id="animated-asset"
+          src="assets/asset.glb"
+        ></a-asset-item>
+        <!-- ここに音声ファイルを追加 -->
         <audio id="sound" src="tokubechu.mp3" preload="auto"></audio>
       </a-assets>
 
@@ -41,16 +39,38 @@
       >
         <a-entity
           id="bowser-model"
-          scale="1.103 1.103 1.103"
+          scale="1.103330903123024 1.103330903123024 1.103330903123024"
           animation-mixer="loop: repeat"
           gltf-model="#animated-asset"
           class="clickable"
           gesture-handler
         ></a-entity>
 
+        <!-- 音声再生用のエンティティ -->
         <a-sound
           id="marker-sound"
           src="#sound"
           autoplay="false"
           position="0 2 0"
-        ></a
+        ></a-sound>
+      </a-marker>
+
+      <a-entity camera></a-entity>
+    </a-scene>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const marker = document.querySelector("#animated-marker");
+        const sound = document.querySelector("#marker-sound");
+
+        marker.addEventListener("markerFound", () => {
+          sound.components.sound.playSound();
+        });
+
+        marker.addEventListener("markerLost", () => {
+          sound.components.sound.stopSound();
+        });
+      });
+    </script>
+  </body>
+</html>
